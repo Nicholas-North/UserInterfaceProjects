@@ -1,12 +1,14 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
+
   export let items = [];
+  export let sortColumn = '';
+  export let sortAscending = true;
 
-  // Extract column names from the first item in the array
-  let columns = items.length > 0 ? Object.keys(items[0]) : [];
+  const dispatch = createEventDispatcher();
 
-  // State for sorting
-  let sortColumn = columns[0]; // Default to the first column
-  let sortAscending = true; // Default to ascending order
+  // State for selected item
+  let selectedItem = null;
 
   // Function to sort items by a given column
   function sortItems(column) {
@@ -18,94 +20,72 @@
     }
 
     items = [...items].sort((a, b) => {
-      if (a[column] < b[column]) return sortAscending ? -1 : 1;
-      if (a[column] > b[column]) return sortAscending ? 1 : -1;
+      let aValue = a[column];
+      let bValue = b[column];
+
+      // Handle date comparison if the column is dateCreated
+      if (column === 'dateCreated') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+
+      if (aValue < bValue) return sortAscending ? -1 : 1;
+      if (aValue > bValue) return sortAscending ? 1 : -1;
       return 0;
     });
   }
 
-  // Function to handle keydown events for accessibility
-  function handleKeydown(event, column) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      sortItems(column);
-    }
+  // Function to handle item click
+  function handleItemClick(item) {
+    selectedItem = item;
+    dispatch('itemClick', { item });
   }
 </script>
-
-<div class="npc-item-array">
-  <!-- Header Row -->
-  <div class="header-row">
-    {#each columns as column}
-      <div class="item-column" role="button" tabindex="0" on:click={() => sortItems(column)} on:keydown={(event) => handleKeydown(event, column)}>
-        <strong>{column}</strong>
-      </div>
-    {/each}
-  </div>
-
-  <!-- Data Rows -->
-  <div class="data-rows">
-    {#each items as item}
-      <div class="item-row">
-        {#each columns as column}
-          <div class="item-column">
-            {item[column]}
-          </div>
-        {/each}
-      </div>
-    {/each}
-  </div>
-</div>
-
 <style>
-  .npc-item-array {
-    max-height: 400px; /* Adjust the height as needed */
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    position: relative;
+  table {
+    width: 100%;
+    border-collapse: collapse;
   }
-  .header-row {
-    display: flex;
-    flex-direction: row;
-    background-color: #f0f0f0;
-    font-weight: bold;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    padding: 0.5rem;
-    border-bottom: 1px solid #ccc;
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
   }
-  .header-row .item-column {
-    border-right: 1px solid #ccc; /* Add right border to header columns */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-    cursor: pointer; /* Change cursor to pointer for header columns */
+
+  th {
+    background-color: #f2f2f2;
+    cursor: pointer;
   }
-  .header-row .item-column:last-child {
-    border-right: none; /* Remove right border from the last header column */
+
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
   }
-  .header-row .item-column:hover {
-    background-color: #e0e0e0; /* Slightly darken the background on hover */
+
+  tr:hover {
+    background-color: #ddd;
   }
-  .data-rows {
-    display: flex;
-    flex-direction: column;
-  }
-  .item-row {
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 0.5rem;
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-  }
-  .item-row:hover {
-    background-color: #e0e0e0; /* Slightly darken the background on hover */
-  }
-  .item-column {
-    flex: 1;
-    padding: 0.5rem;
-    border-right: 1px solid #ccc;
-  }
-  .item-column:last-child {
-    border-right: none;
+
+  tr.selected {
+    background-color: #b3d9ff;
   }
 </style>
+
+<table>
+  <thead>
+    <tr>
+      <th on:click={() => sortItems('name')}>Name</th>
+      <th on:click={() => sortItems('tags')}>Tags</th>
+      <th on:click={() => sortItems('dateCreated')}>Date Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {#each items as item}
+      <tr class:selected={item === selectedItem} on:click={() => handleItemClick(item)}>
+        <td>{item.name}</td>
+        <td>{item.tags}</td>
+        <td>{item.dateCreated}</td>
+      </tr>
+    {/each}
+  </tbody>
+</table>

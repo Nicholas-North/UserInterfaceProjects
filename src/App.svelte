@@ -1,14 +1,13 @@
 <script>
-  import svelteLogo from './assets/svelte.svg';
+  import { onMount } from 'svelte';
   import Button from './lib/BaseButton.svelte';
   import BaseItemArray from './lib/NPCItemArray.svelte';
   import ImgBox from './lib/ImgBox.svelte';
   import FilterBar from './lib/FilterBar.svelte';
   import NewItemModal from './lib/NewItemModal.svelte';
   import SelectedItemDisplay from './lib/SelectedItemDisplay.svelte';
-  function openPopup() {
-    window.open('https://example.com', '_blank', 'width=600,height=400'); // Open a new pop-up window
-  }
+  import DropDownMenu from './lib/DropDownMenu.svelte';
+
   let items = [
     { name: 'Project Alpha', tags: 'urgent, client', dateCreated: '2023-01-15' },
     { name: 'Project Beta', tags: 'internal, low-priority', dateCreated: '2023-02-20' },
@@ -24,66 +23,129 @@
   let filteredItems = items;
   let showModal = false;
   let selectedItem = items[0]; // Default to the first item
+  let dropdownVisible = false;
+  let dropdownPosition = { x: 0, y: 0 };
+  let isEditing = false;
+  let itemBeingEdited = null;
+  let updatedItem = {};
+
+  $: filteredItems = items;
+
   function handleFilter(event) {
-        const filterText = event.detail.filterText.toLowerCase();
-        filteredItems = items.filter(item => 
-            Object.values(item).some(value => 
-                value.toString().toLowerCase().includes(filterText)
-            )
-        );
-    }
+    const filterText = event.detail.filterText.toLowerCase();
+    filteredItems = items.filter(item => 
+      Object.values(item).some(value => 
+        value.toString().toLowerCase().includes(filterText)
+      )
+    );
+  }
 
   function openModal() {
-      showModal = true;
+    showModal = true;
   }
 
   function closeModal() {
-      showModal = false;
+    showModal = false;
   }
 
+  function handleItemClick(event) {
+    selectedItem = event.detail.item;
+    isEditing = false; // Reset editing state when a new item is selected
+  }
+
+  function handleContextMenu(event) {
+    event.preventDefault();
+    dropdownPosition = { x: event.detail.event.clientX, y: event.detail.event.clientY };
+    dropdownVisible = true;
+    selectedItem = event.detail.item;
+  }
+
+  function closeDropdown() {
+    dropdownVisible = false;
+  }
+
+  function deleteSelectedItem() {
+    items = items.filter(item => item !== selectedItem);
+    filteredItems = items; // Update the filtered items as well
+    dropdownVisible = false; // Close the dropdown after deletion
+  }
+  
   function handleModalSubmit(event) {
-      items = [...items, event.detail];
-      filteredItems = items;
-      closeModal();
+    const newItem = event.detail;
+    if (isEditing) {
+      saveChanges(newItem);
+    } else {
+      items = [...items, newItem];
+      filteredItems = items; // Update the filtered items as well
+    }
+    closeModal();
+  }
+  function toggleEdit() {
+    isEditing = true;
+    itemBeingEdited = selectedItem;
+    updatedItem = { ...selectedItem }; // Initialize updatedItem with the selected item data
+    dropdownVisible = false; // Close the dropdown after toggling edit
   }
 
-  function handleItemClick(item) {
-        selectedItem = item;
+  function saveChanges() {
+    const index = items.findIndex(item => item === itemBeingEdited);
+    if (index !== -1) {
+      items[index] = { ...updatedItem }; // Update the existing item
+    }
+    filteredItems = items.map(item => ({ ...item })); // Update the filtered items with deep copies
+    selectedItem = { ...updatedItem }; // Update the selected item with a deep copy
+    isEditing = false;
+    itemBeingEdited = null;
+
+    // Trigger a re-render by updating a reactive variable
+    items = [...items];
+    filteredItems = [...filteredItems];
   }
+
+  onMount(() => {
+    window.addEventListener('click', closeDropdown);
+    return () => {
+      window.removeEventListener('click', closeDropdown);
+    };
+  });
 </script>
 
 <main>
-<body>
-  <div class="main-body-elements">
-    <div class="container-one">
-      <div class="taskbar">
-        <Button text="New" onClick={openModal}></Button>
-        <FilterBar on:filter={handleFilter} />
-        <div class="radio-buttons">
-          <label>
-            <input type="radio" name="search" value="name" /> Name
-          </label>
-          <label>
-            <input type="radio" name="search" value="tag" /> Tag
-          </label>
+  <body>
+    <div class="main-body-elements">
+      <div class="container-one">
+        <div class="taskbar">
+          <Button text="New" onClick={openModal}></Button>
+          <FilterBar on:filter={handleFilter} />
         </div>
+        <BaseItemArray items={filteredItems} on:itemClick={handleItemClick} on:contextmenu={handleContextMenu} />
       </div>
-      <BaseItemArray items={filteredItems} on:itemClick={handleItemClick} />
-    </div>
-    <div class="container-two">
-      <div class="npc-header">
-        <SelectedItemDisplay {selectedItem} />
-        <!-- <ImgBox imageUrl="src/images/HPY.png" /> -->
-        <ImgBox imageUrl="" />
+      <div class="container-two">
+        <div class="npc-header">
+          {#if isEditing}
+            <div>
+              <input type="text" bind:value={updatedItem.name} />
+              <input type="text" bind:value={updatedItem.tags} />
+              <input type="text" bind:value={updatedItem.dateCreated} />
+              <button on:click={saveChanges}>Save</button>
+            </div>
+          {:else}
+            <SelectedItemDisplay {selectedItem} />
+          {/if}
+          <!-- <ImgBox imageUrl="src/images/HPY.png" /> -->
+          <ImgBox imageUrl="" />
+        </div>
+        <p></p>
       </div>
-      <p></p>
     </div>
-  </div>
-</body>
+    {#if dropdownVisible}
+      <DropDownMenu {dropdownPosition} {selectedItem} on:delete={deleteSelectedItem} on:edit={toggleEdit} />
+    {/if}
+  </body>
 </main>
 
 {#if showModal}
-    <NewItemModal on:submit={handleModalSubmit} on:cancel={closeModal} />
+    <NewItemModal on:submit={handleModalSubmit} on:cancel={closeModal} {isEditing} {itemBeingEdited} />
 {/if}
 
 <style>
@@ -111,10 +173,6 @@
     border: 1px solid #ccc;
     border-radius: 8px;
     background-color: #f0f0f0;
-  }
-  .radio-buttons {
-    display: flex;
-    flex-direction: column;
   }
   .npc-header {
     display: inline-flex;

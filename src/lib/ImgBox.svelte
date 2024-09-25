@@ -39,18 +39,27 @@
 
 <style>
     .imgbox {
+        width: 250px; /* Set your desired width */
+        height: 250px; /* Set your desired height */
         border: 1px solid #ccc;
-        border-radius: 8px;
-        overflow: hidden;
-        max-width: 300px; /* Adjust as needed */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* Ensure content does not overflow */
     }
+
+    .imgbox-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain; /* Ensure the image fits within the box */
+    }
+
     .imgbox-placeholder {
         display: flex;
-        justify-content: center;
         align-items: center;
-        height: 200px; /* Adjust as needed */
+        justify-content: center;
+        width: 100%;
+        height: 100%;
     }
     .imgbox-placeholder button {
         padding: 10px 20px;

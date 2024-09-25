@@ -4,8 +4,17 @@
 </script>
 
 <div class="npc-identity">
-    <h1>{selectedItem.name}</h1>
-    <h2>{selectedItem.tags}</h2>
+    {#if selectedItem}
+        <div>
+        <h1>{selectedItem.name}</h1>
+        <h2>{selectedItem.tags}</h2>
+        <!-- other properties of selectedItem -->
+        </div>
+    {:else}
+        <div>
+        <p>No item selected</p>
+        </div>
+    {/if}
 </div>
 
 <style>
