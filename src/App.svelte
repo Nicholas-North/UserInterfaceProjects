@@ -9,16 +9,16 @@
   import DropDownMenu from './lib/DropDownMenu.svelte';
 
   let items = [
-    { name: 'Project Alpha', tags: 'urgent, client', dateCreated: '2023-01-15' },
-    { name: 'Project Beta', tags: 'internal, low-priority', dateCreated: '2023-02-20' },
-    { name: 'Project Gamma', tags: 'client, high-priority', dateCreated: '2023-03-05' },
-    { name: 'Project Delta', tags: 'internal, medium-priority', dateCreated: '2023-04-10' },
-    { name: 'Project Epsilon', tags: 'urgent, internal', dateCreated: '2023-05-25' },
-    { name: 'Project Zeta', tags: 'client, low-priority', dateCreated: '2023-06-30' },
-    { name: 'Project Eta', tags: 'high-priority, internal', dateCreated: '2023-07-15' },
-    { name: 'Project Theta', tags: 'client, medium-priority', dateCreated: '2023-08-20' },
-    { name: 'Project Iota', tags: 'urgent, high-priority', dateCreated: '2023-09-05' },
-    { name: 'Project Kappa', tags: 'internal, low-priority', dateCreated: '2023-10-10' }
+    { name: 'Happy', tags: 'Human, Rogue, NPC', dateCreated: '2023-01-15', description: 'Happy is a human rogue, who hails from the town of neverwinter', image: 'src/images/HPY.png' },
+    { name: 'Grumpy', tags: 'Dwarf, Warrior, NPC', dateCreated: '2023-02-20', description: 'Grumpy is a dwarf warrior, known for his short temper and strength', image: 'https://via.placeholder.com/150' },
+    { name: 'Sleepy', tags: 'Elf, Mage, NPC', dateCreated: '2023-03-10', description: 'Sleepy is an elf mage, who is always seen with a sleepy expression', image: 'https://via.placeholder.com/150' },
+    { name: 'Bashful', tags: 'Halfling, Bard, NPC', dateCreated: '2023-04-05', description: 'Bashful is a halfling bard, who is shy but has a beautiful singing voice', image: 'https://via.placeholder.com/150' },
+    { name: 'Sneezy', tags: 'Orc, Shaman, NPC', dateCreated: '2023-05-15', description: 'Sneezy is an orc shaman, who is known for his constant sneezing', image: 'https://via.placeholder.com/150' },
+    { name: 'Doc', tags: 'Gnome, Alchemist, NPC', dateCreated: '2023-06-25', description: 'Doc is a gnome alchemist, who is always experimenting with new potions', image: 'https://via.placeholder.com/150' },
+    { name: 'Dopey', tags: 'Troll, Thief, NPC', dateCreated: '2023-07-30', description: 'Dopey is a troll thief, who is clumsy but surprisingly effective', image: 'https://via.placeholder.com/150' },
+    { name: 'Jolly', tags: 'Human, Merchant, NPC', dateCreated: '2023-08-10', description: 'Jolly is a human merchant, who is always cheerful and ready to make a deal', image: 'https://via.placeholder.com/150' },
+    { name: 'Gloomy', tags: 'Elf, Ranger, NPC', dateCreated: '2023-09-15', description: 'Gloomy is an elf ranger, who prefers solitude and the company of nature', image: 'https://via.placeholder.com/150' },
+    { name: 'Cheery', tags: 'Dwarf, Miner, NPC', dateCreated: '2023-10-01', description: 'Cheery is a dwarf miner, who is always in high spirits despite the hard work', image: 'https://via.placeholder.com/150' },
   ];
   let filteredItems = items;
   let showModal = false;
@@ -53,11 +53,11 @@
     isEditing = false; // Reset editing state when a new item is selected
   }
 
-  function handleContextMenu(event) {
+  function handleContextMenu(event, item) {
     event.preventDefault();
-    dropdownPosition = { x: event.detail.event.clientX, y: event.detail.event.clientY };
+    dropdownPosition = { x: event.clientX, y: event.clientY };
     dropdownVisible = true;
-    selectedItem = event.detail.item;
+    selectedItem = item;
   }
 
   function closeDropdown() {
@@ -65,15 +65,17 @@
   }
 
   function deleteSelectedItem() {
+    console.log('deleteSelectedItem called for item:', selectedItem);
     items = items.filter(item => item !== selectedItem);
     filteredItems = items; // Update the filtered items as well
     dropdownVisible = false; // Close the dropdown after deletion
+    console.log('Items after deletion:', items);
   }
   
   function handleModalSubmit(event) {
     const newItem = event.detail;
     if (isEditing) {
-      saveChanges(newItem);
+      isEditing = false;
     } else {
       items = [...items, newItem];
       filteredItems = items; // Update the filtered items as well
@@ -82,25 +84,23 @@
   }
   function toggleEdit() {
     isEditing = true;
-    itemBeingEdited = selectedItem;
-    updatedItem = { ...selectedItem }; // Initialize updatedItem with the selected item data
     dropdownVisible = false; // Close the dropdown after toggling edit
   }
 
-  function saveChanges() {
-    const index = items.findIndex(item => item === itemBeingEdited);
-    if (index !== -1) {
-      items[index] = { ...updatedItem }; // Update the existing item
-    }
-    filteredItems = items.map(item => ({ ...item })); // Update the filtered items with deep copies
-    selectedItem = { ...updatedItem }; // Update the selected item with a deep copy
-    isEditing = false;
-    itemBeingEdited = null;
+  // function saveChanges() {
+  //   const index = items.findIndex(item => item === itemBeingEdited);
+  //   if (index !== -1) {
+  //     items[index] = { ...updatedItem }; // Update the existing item
+  //   }
+  //   filteredItems = items.map(item => ({ ...item })); // Update the filtered items with deep copies
+  //   selectedItem = { ...updatedItem }; // Update the selected item with a deep copy
+  //   isEditing = false;
+  //   itemBeingEdited = null;
 
-    // Trigger a re-render by updating a reactive variable
-    items = [...items];
-    filteredItems = [...filteredItems];
-  }
+  //   // Trigger a re-render by updating a reactive variable
+  //   items = [...items];
+  //   filteredItems = [...filteredItems];
+  // }
 
   onMount(() => {
     window.addEventListener('click', closeDropdown);
@@ -118,22 +118,11 @@
           <Button text="New" onClick={openModal}></Button>
           <FilterBar on:filter={handleFilter} />
         </div>
-        <BaseItemArray items={filteredItems} on:itemClick={handleItemClick} on:contextmenu={handleContextMenu} />
+        <BaseItemArray items={filteredItems} handleContextMenu={handleContextMenu} on:itemClick={handleItemClick} />
       </div>
       <div class="container-two">
         <div class="npc-header">
-          {#if isEditing}
-            <div>
-              <input type="text" bind:value={updatedItem.name} />
-              <input type="text" bind:value={updatedItem.tags} />
-              <input type="text" bind:value={updatedItem.dateCreated} />
-              <button on:click={saveChanges}>Save</button>
-            </div>
-          {:else}
-            <SelectedItemDisplay {selectedItem} />
-          {/if}
-          <!-- <ImgBox imageUrl="src/images/HPY.png" /> -->
-          <ImgBox imageUrl="" />
+          <SelectedItemDisplay selectedItem={selectedItem} editMode={isEditing} />
         </div>
         <p></p>
       </div>
@@ -145,7 +134,7 @@
 </main>
 
 {#if showModal}
-    <NewItemModal on:submit={handleModalSubmit} on:cancel={closeModal} {isEditing} {itemBeingEdited} />
+    <NewItemModal on:submit={handleModalSubmit} on:cancel={closeModal} />
 {/if}
 
 <style>

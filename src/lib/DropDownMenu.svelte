@@ -52,6 +52,7 @@
       cursor: pointer;
       width: 100%;
       text-align: left;
+      color: black;
     }
   
     .dropdown-menu button:hover {

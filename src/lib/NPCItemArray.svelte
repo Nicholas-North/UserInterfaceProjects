@@ -4,6 +4,7 @@
   export let items = [];
   export let sortColumn = '';
   export let sortAscending = true;
+  export let handleContextMenu = () => {};
 
   const dispatch = createEventDispatcher();
 
@@ -41,6 +42,7 @@
     dispatch('itemClick', { item });
   }
 </script>
+
 <style>
   table {
     width: 100%;
@@ -81,7 +83,7 @@
   </thead>
   <tbody>
     {#each items as item}
-      <tr class:selected={item === selectedItem} on:click={() => handleItemClick(item)}>
+      <tr class:selected={item === selectedItem} on:click={() => handleItemClick(item)} on:contextmenu={(event) => handleContextMenu(event, item)}>
         <td>{item.name}</td>
         <td>{item.tags}</td>
         <td>{item.dateCreated}</td>
