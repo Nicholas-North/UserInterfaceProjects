@@ -1,0 +1,12 @@
+[
+    { "name": "Project Alpha", "tags": "urgent, client", "dateCreated": "2023-01-15" },
+    { "name": "Project Beta", "tags": "internal, low-priority", "dateCreated": "2023-02-20" },
+    { "name": "Project Gamma", "tags": "client, high-priority", "dateCreated": "2023-03-05" },
+    { "name": "Project Delta", "tags": "internal, medium-priority", "dateCreated": "2023-04-10" },
+    { "name": "Project Epsilon", "tags": "urgent, internal", "dateCreated": "2023-05-25" },
+    { "name": "Project Zeta", "tags": "client, low-priority", "dateCreated": "2023-06-30" },
+    { "name": "Project Eta", "tags": "high-priority, internal", "dateCreated": "2023-07-15" },
+    { "name": "Project Theta", "tags": "client, medium-priority", "dateCreated": "2023-08-20" },
+    { "name": "Project Iota", "tags": "urgent, high-priority", "dateCreated": "2023-09-05" },
+    { "name": "Project Kappa", "tags": "internal, low-priority", "dateCreated": "2023-10-10" }
+]
